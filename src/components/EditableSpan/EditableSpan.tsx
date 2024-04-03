@@ -1,4 +1,5 @@
-import React from 'react';
+import React, {useState} from 'react';
+import {TextField} from "@mui/material";
 
 type EditableSpanPropsType = {
     title: string
@@ -6,22 +7,35 @@ type EditableSpanPropsType = {
 }
 
 function EditableSpan(props: EditableSpanPropsType) {
+    console.log('EditableSpan render')
 
     const [isEdit, setIsEdit] = React.useState(false)
     const [title, setTitle] = React.useState('')
+    let [error, setError] = useState<string | null>(null)
 
-    function onChangeHandler(e: React.ChangeEvent<HTMLInputElement>) {
+
+    const onChangeHandler = React.useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+        if(title.trim() !== '') {
+            setError(null)
+        }
         setTitle(e.currentTarget.value)
-    }
+    }, [])
 
     function onEditMode() {
         setIsEdit(true)
         setTitle(props.title)
+        setError(null)
     }
 
-    function onViewMode() {
-        props.callBack(title)
-        setIsEdit(false)
+    const onViewMode = () => {
+        if(title.trim() === '') {
+            setError("Title is required");
+        } else {
+            props.callBack(title.trim())
+            setIsEdit(false)
+        }
+
+
     }
 
     function onKeyDownHandler(e: React.KeyboardEvent<HTMLInputElement>) {
@@ -35,7 +49,10 @@ function EditableSpan(props: EditableSpanPropsType) {
             {
                 !isEdit
                     ? <span onDoubleClick={onEditMode}>{props.title}</span>
-                    : <input
+                    : <TextField
+                        variant={'standard'}
+                        error={!!error}
+                        helperText={error ? "Write anything, please" : ''}
                         autoFocus
                         onBlur={onViewMode}
                         onKeyDown={onKeyDownHandler}
